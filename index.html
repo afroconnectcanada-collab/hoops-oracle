@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hoops Oracle: College Basketball Predictor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1020;--panel:#131a2e;--panel2:#1a2340;--line:#26304f;--text:#e8ecf6;--muted:#8f9bbb;
+  --accent:#ff7a1a;--accent2:#ffb067;--good:#34d399;--bad:#f87171;--warn:#fbbf24;--blue:#60a5fa;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.45}
+a{color:var(--accent2)}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 18px 60px}
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.logo{width:42px;height:42px;flex:none}
+h1{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:30px;letter-spacing:.5px;margin:0;line-height:1}
+h1 small{display:block;font-family:Inter;font-weight:500;font-size:12px;color:var(--muted);letter-spacing:0;margin-top:3px}
+.status{margin-left:auto;font-size:12px;color:var(--muted);background:var(--panel);border:1px solid var(--line);padding:5px 10px;border-radius:999px}
+.status b{color:var(--good);font-weight:600}
+nav{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:18px}
+nav a{padding:10px 14px;color:var(--muted);text-decoration:none;font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px}
+nav a.on{color:var(--text);border-color:var(--accent)}
+nav a:hover{color:var(--text)}
+.view{display:none}.view.on{display:block}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:820px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.card h2,.card h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.4px;margin:0 0 10px;text-transform:uppercase}
+.card h2{font-size:20px}.card h3{font-size:16px;color:var(--accent2)}
+label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px;font-weight:500}
+input,select,textarea{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+textarea{font-family:'JetBrains Mono',monospace;font-size:12px;min-height:150px;resize:vertical}
+.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.row>*{flex:1;min-width:90px}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#1a0d00;border:0;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer;font:inherit;font-weight:700;white-space:nowrap}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+.btn.ghost:hover{border-color:var(--accent)}
+.btn.sm{padding:5px 9px;font-size:12px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{flex:1;background:transparent;color:var(--muted);border:0;padding:8px 6px;cursor:pointer;font:inherit;font-weight:600;font-size:13px}
+.seg button.on{background:var(--panel2);color:var(--text);box-shadow:inset 0 -2px 0 var(--accent)}
+.mono{font-family:'JetBrains Mono',monospace}
+.muted{color:var(--muted)}.good{color:var(--good)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.small{font-size:12px}
+.teamhead{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.badge{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.badge.ok{color:var(--good);border-color:rgba(52,211,153,.35)}
+.badge.no{color:var(--warn);border-color:rgba(251,191,36,.35)}
+.score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;text-align:center;padding:6px 0 12px}
+.score .nm{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis}
+.score .pts{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:58px;line-height:1}
+.score .vs{color:var(--muted);font-family:'Barlow Condensed';font-size:18px}
+.probbar{height:12px;border-radius:99px;overflow:hidden;display:flex;background:var(--panel2);margin:4px 0 6px}
+.probbar div{height:100%}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+@media(max-width:620px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--panel2);border-radius:10px;padding:10px}
+.kpi .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.kpi .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;margin-top:2px}
+.kpi .s{font-size:11px;color:var(--muted)}
+.pick{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--panel2);margin-top:8px;border-left:4px solid var(--line)}
+.pick.val{border-left-color:var(--good)}.pick.strong{border-left-color:var(--good);background:rgba(52,211,153,.08)}.pick.pass{border-left-color:var(--muted)}
+.pick .t{font-weight:700}.pick .d{font-size:12px;color:var(--muted)}
+.pick .e{margin-left:auto;text-align:right;font-family:'JetBrains Mono',monospace;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;cursor:default;position:sticky;top:0;background:var(--panel)}
+th.sort{cursor:pointer}th.sort:hover{color:var(--text)}
+td.n,th.n{text-align:right;font-family:'JetBrains Mono',monospace}
+tr.click{cursor:pointer}tr.click:hover td{background:var(--panel2)}
+.tbl{max-height:560px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.note{font-size:12px;color:var(--muted);background:var(--panel2);border-radius:8px;padding:10px 12px;margin-top:10px}
+.msg{font-size:13px;margin-top:10px;min-height:1em}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px}
+.tag.g{background:rgba(52,211,153,.15);color:var(--good)}.tag.r{background:rgba(248,113,113,.15);color:var(--bad)}.tag.y{background:rgba(251,191,36,.15);color:var(--warn)}.tag.m{background:var(--panel2);color:var(--muted)}
+.guide p,.guide li{color:#c9d1e6}
+.guide h3{margin-top:16px}
+code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--panel2);padding:1px 5px;border-radius:4px}
+.log-score input{width:58px;padding:4px 6px;text-align:center}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="#ff7a1a"/><g fill="none" stroke="#1a0d00" stroke-width="2.2"><path d="M2 24h44M24 2v44"/><path d="M9 8c6 5 9 10 9 16s-3 11-9 16M39 8c-6 5-9 10-9 16s3 11 9 16"/></g></svg>
+  <h1>Hoops Oracle<small>College basketball game predictor · efficiency model + market edge finder</small></h1>
+  <div class="status" id="saveStatus">Loading…</div>
+</header>
+<nav id="nav">
+  <a href="#predict" data-v="predict">Predict</a>
+  <a href="#slate" data-v="slate">Slate</a>
+  <a href="#teams" data-v="teams">Team ratings</a>
+  <a href="#build" data-v="build">Build &amp; backtest</a>
+  <a href="#log" data-v="log">Track record</a>
+  <a href="#guide" data-v="guide">How it works</a>
+</nav>
+
+<!-- PREDICT -->
+<section class="view" id="v-predict">
+  <div id="noTeamsNote" class="note hide" style="margin:0 0 14px">No team ratings loaded yet. Go to <a href="#teams">Team ratings</a> to paste this season's ratings (free from barttorvik.com), or <a href="#build">Build &amp; backtest</a> to build your own from game results. You can also type ratings in by hand below.</div>
+  <div class="grid g2">
+    <div class="grid">
+      <div class="card">
+        <h2>Matchup</h2>
+        <div class="grid g2">
+          <div id="sideA"></div>
+          <div id="sideB"></div>
+        </div>
+        <label>Venue</label>
+        <div class="seg" id="venue">
+          <button data-v="A">Team A home</button><button data-v="N">Neutral</button><button data-v="B" class="on">Team B home</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Sportsbook lines <span class="muted small" style="text-transform:none;font-family:Inter;font-weight:500">optional, to find value</span></h2>
+        <div class="row">
+          <div><label>Favorite</label><select id="favSide"><option value="">(no spread)</option><option value="A">Team A</option><option value="B">Team B</option></select></div>
+          <div><label>Spread (points)</label><input id="spread" type="number" step="0.5" placeholder="e.g. 5.5"></div>
+          <div><label>Spread odds</label><input id="spreadOdds" type="number" value="-110"></div>
+        </div>
+        <div class="row">
+          <div><label>Total (O/U)</label><input id="total" type="number" step="0.5" placeholder="e.g. 145.5"></div>
+          <div><label>Total odds</label><input id="totalOdds" type="number" value="-110"></div>
+        </div>
+        <div class="row">
+          <div><label>Moneyline Team A</label><input id="mlA" type="number" placeholder="e.g. +180"></div>
+          <div><label>Moneyline Team B</label><input id="mlB" type="number" placeholder="e.g. -220"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="result"></div>
+  </div>
+</section>
+
+<!-- SLATE -->
+<section class="view" id="v-slate">
+  <div class="card">
+    <h2>Predict a full slate</h2>
+    <p class="muted small" style="margin-top:0">One game per line. Use <code>Away @ Home</code>, or <code>Team vs Team</code> for a neutral site. After commas you can add the <b>home team's spread</b> and the <b>total</b>, like this: <code>Kestrel Bay Tech @ Ashford State, -4.5, 141.5</code>. For neutral games the spread is for the second team.</p>
+    <textarea id="slateIn" placeholder="Duke @ North Carolina, -2.5, 152.5&#10;Houston vs Gonzaga, +1.5, 138&#10;Kansas @ Baylor"></textarea>
+    <div class="btns"><button class="btn" id="slateGo">Predict slate</button><button class="btn ghost" id="slateDemo">Fill with demo games</button></div>
+    <div class="msg" id="slateMsg"></div>
+  </div>
+  <div class="card" style="margin-top:14px"><div class="tbl" id="slateOut"><div class="empty">Results show here, best value first. Click a game to open it in Predict.</div></div></div>
+</section>
+
+<!-- TEAMS -->
+<section class="view" id="v-teams">
+  <div class="grid g2">
+    <div class="card">
+      <h2>Import ratings</h2>
+      <p class="muted small" style="margin-top:0">Paste a CSV with team, offense, defense and tempo (adjusted, per 100 possessions). Exports from <a href="https://barttorvik.com/trank.php" target="_blank" rel="noopener">Bart Torvik's T-Rank</a> (free) and <a href="https://kenpom.com" target="_blank" rel="noopener">KenPom</a> (subscription) are recognized automatically. A plain <code>Team,Off,Def,Tempo</code> list works too.</p>
+      <textarea id="ratingsIn" placeholder="Team,AdjOE,AdjDE,AdjT&#10;Duke,124.8,89.9,69.4&#10;Houston,119.7,87.5,63.1"></textarea>
+      <div class="btns"><button class="btn" id="impReplace">Import (replace all)</button><button class="btn ghost" id="impMerge">Import (merge / update)</button></div>
+      <div class="msg" id="impMsg"></div>
+    </div>
+    <div class="card">
+      <h2>Model settings</h2>
+      <div class="row">
+        <div><label>Home-court advantage (pts)</label><input id="sHca" type="number" step="0.1"></div>
+        <div><label>Margin σ (pts)</label><input id="sSigma" type="number" step="0.1"></div>
+        <div><label>Total σ (pts)</label><input id="sSigmaT" type="number" step="0.1"></div>
+      </div>
+      <div class="row">
+        <div><label>League avg efficiency</label><input id="sEff" type="number" step="0.1" placeholder="auto"></div>
+        <div><label>League avg tempo</label><input id="sTempo" type="number" step="0.1" placeholder="auto"></div>
+        <div><label>Kelly fraction</label><input id="sKelly" type="number" step="0.05" min="0" max="1"></div>
+      </div>
+      <div class="note">Defaults: home court ≈ 3 pts, σ ≈ 11 for margins and ≈ 15 for totals (typical D-I game-to-game spread). Leave league averages blank to use the average of your loaded teams. A Kelly fraction of 0.25 (quarter Kelly) is the usual safer stake size.</div>
+      <div class="btns"><button class="btn ghost sm" id="sReset">Reset to defaults</button></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="row" style="align-items:center;margin-bottom:10px">
+      <h2 style="margin:0;flex:2">Team library <span class="muted small" id="teamCount" style="font-family:Inter;text-transform:none"></span></h2>
+      <input id="teamSearch" placeholder="Search teams…" style="flex:2">
+      <button class="btn ghost sm" id="copyCsv" style="flex:0">Copy CSV</button>
+      <button class="btn ghost sm" id="clearTeams" style="flex:0">Clear all</button>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <input id="addName" placeholder="Add team: name"><input id="addOff" type="number" step="0.1" placeholder="Off"><input id="addDef" type="number" step="0.1" placeholder="Def"><input id="addTempo" type="number" step="0.1" placeholder="Tempo"><button class="btn sm" id="addTeam" style="flex:0">Add / update</button>
+    </div>
+    <div class="tbl" id="teamTable"></div>
+  </div>
+</section>
+
+<!-- BUILD -->
+<section class="view" id="v-build">
+  <div class="grid g2">
+    <div class="card">
+      <h2>Build ratings from game results</h2>
+      <p class="muted small" style="margin-top:0">Paste results as <code>date,home,away,home_score,away_score,neutral</code> (neutral = 1 or 0). The model rates every team's offense and defense against the schedule it actually played, weights recent games more, softens blowouts, and learns home-court advantage from the data.</p>
+      <textarea id="gamesIn" placeholder="date,home,away,home_score,away_score,neutral&#10;2026-11-03,Duke,Army,88,61,0"></textarea>
+      <div class="row">
+        <div><label>Recency half-life (days)</label><input id="bHalf" type="number" value="45"></div>
+        <div><label>Blowout cap (pts)</label><input id="bCap" type="number" value="25"></div>
+        <div><label>Early-season shrink (games)</label><input id="bPrior" type="number" step="0.5" value="3"></div>
+      </div>
+      <div class="btns">
+        <button class="btn" id="bFit">Fit ratings</button>
+        <button class="btn ghost" id="bTest">Run backtest</button>
+        <button class="btn ghost" id="bDemo">Load demo season (fictional)</button>
+      </div>
+      <div class="msg" id="bMsg"></div>
+    </div>
+    <div class="card" id="btOut">
+      <h2>Backtest</h2>
+      <div class="empty">The backtest replays the season day by day: before each day it re-fits the ratings using only earlier games, predicts that day's games, then scores the predictions. Nothing from the future leaks in.</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px" id="fitOut"><h2>Fitted ratings</h2><div class="empty">Fit ratings to see them here.</div></div>
+</section>
+
+<!-- LOG -->
+<section class="view" id="v-log">
+  <div class="grid g4" id="logStats"></div>
+  <div class="card" style="margin-top:14px">
+    <h2>Saved predictions</h2>
+    <p class="muted small" style="margin-top:0">Save a prediction from the Predict tab, then enter the final score once the game ends. Your record updates automatically.</p>
+    <div class="tbl" id="logTable"></div>
+  </div>
+</section>
+
+<!-- GUIDE -->
+<section class="view guide" id="v-guide">
+  <div class="grid g2">
+    <div class="card">
+      <h2>The model</h2>
+      <p>Hoops Oracle uses the <b>tempo-free efficiency</b> approach behind the leading public college basketball systems (KenPom, Bart Torvik). Each team gets three numbers: points scored per 100 possessions (offense), points allowed per 100 possessions (defense), and possessions per game (tempo), all adjusted for the opponents it played.</p>
+      <h3>Projecting a game</h3>
+      <ol>
+        <li><b>Pace:</b> expected possessions = Tempo A × Tempo B ÷ league tempo.</li>
+        <li><b>Efficiency:</b> A's points per 100 = A offense × B defense ÷ league average. Same for B.</li>
+        <li><b>Score:</b> efficiency × possessions ÷ 100, then home court (± half each side) and any lineup adjustments you enter.</li>
+        <li><b>Win probability:</b> margins are roughly normally distributed around the projection, so P(win) = Φ(margin ÷ σ), with σ ≈ 11 points.</li>
+      </ol>
+      <h3>Finding value</h3>
+      <p>Enter a sportsbook line and the app compares the model's probability with the break-even probability implied by the odds (52.4% at −110). A positive edge means the model rates that bet above what the price requires. Stake sizes follow fractional Kelly.</p>
+      <h3>Building your own ratings</h3>
+      <p>The Build tab fits ratings from raw scores with an iterative opponent adjustment (a ridge regression on points scored and allowed). It discounts older games, caps blowouts at 25 points, pulls teams with few games toward average, and learns home-court advantage and σ from your data. The walk-forward backtest reports accuracy, Brier score and calibration so you can tune the settings honestly.</p>
+    </div>
+    <div class="card">
+      <h2>Getting data</h2>
+      <ul>
+        <li><b>Ratings (easiest):</b> on <a href="https://barttorvik.com/trank.php" target="_blank" rel="noopener">barttorvik.com</a>, copy the ratings table (team, AdjOE, AdjDE, Adj T.) into the Team ratings tab. Re-import every few days; ratings move a lot early in the season.</li>
+        <li><b>Game results:</b> any results export with dates, teams and scores works in the Build tab, or keep your own spreadsheet and paste it in.</li>
+        <li><b>Team names</b> must match between your ratings and the games you predict. Matching ignores capitals and punctuation.</li>
+      </ul>
+      <h3>Using it well</h3>
+      <ul>
+        <li>Use the <b>lineup adjustment</b> for injuries or suspensions. Losing a star is often worth 2–5 points.</li>
+        <li>Early season (November), ratings are noisy. Lean on preseason-informed ratings like Torvik's until teams have 8–10 games.</li>
+        <li>Market lines are sharp. Edges under 2–3% are usually noise. Track your results in Track record before trusting the model with real money.</li>
+        <li>Your teams, settings and log are saved to your account, so they follow you across devices.</li>
+      </ul>
+      <div class="note">For entertainment and analysis. No model beats the market reliably, and past results don't guarantee future ones. If you bet, bet only what you can afford to lose.</div>
+    </div>
+  </div>
+</section>
+</div>
+<datalist id="teamList"></datalist>
+
+<script>
+// ===== Hoops Oracle prediction engine =====
+const Engine = (() => {
+  const norm = s => String(s || '').toLowerCase().replace(/&amp;/g, '&').replace(/[^a-z0-9&]+/g, ' ').trim();
+
+  // Standard normal CDF (Abramowitz-Stegun 7.1.26 via erf)
+  function erf(x) {
+    const s = Math.sign(x); x = Math.abs(x);
+    const t = 1 / (1 + 0.3275911 * x);
+    const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+    return s * y;
+  }
+  const Phi = z => 0.5 * (1 + erf(z / Math.SQRT2));
+
+  // ---------- CSV ----------
+  function parseCSV(text) {
+    const rows = []; let row = [], cur = '', q = false;
+    const delim = (text.split('\n')[0].match(/\t/) ? '\t' : ',');
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+        else cur += c;
+      } else if (c === '"') q = true;
+      else if (c === delim) { row.push(cur.trim()); cur = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(cur.trim()); cur = '';
+        if (row.some(v => v !== '')) rows.push(row);
+        row = [];
+      } else cur += c;
+    }
+    row.push(cur.trim()); if (row.some(v => v !== '')) rows.push(row);
+    return rows;
+  }
+  const hkey = h => String(h).toLowerCase().replace(/[^a-z0-9]/g, '');
+  const num = v => { const n = parseFloat(String(v).replace(/[^0-9.\-+eE]/g, '')); return isFinite(n) ? n : NaN; };
+
+  function findCol(header, names) {
+    for (const n of names) { const i = header.indexOf(n); if (i >= 0) return i; }
+    return -1;
+  }
+
+  // Ratings import: Torvik / KenPom / generic (team, off, def, tempo)
+  function parseRatings(text) {
+    const rows = parseCSV(text.trim());
+    if (!rows.length) return { teams: [], errors: ['Nothing to import.'] };
+    const header = rows[0].map(hkey);
+    let ti = findCol(header, ['team', 'school', 'name', 'teamname']);
+    let oi = findCol(header, ['adjoe', 'adjo', 'adjortg', 'ortg', 'oe', 'off', 'offense', 'offeff', 'adjoff']);
+    let di = findCol(header, ['adjde', 'adjd', 'adjdrtg', 'drtg', 'de', 'def', 'defense', 'defeff', 'adjdef']);
+    let pi = findCol(header, ['adjt', 'adjtempo', 'tempo', 'pace', 'adjpace', 'possessions', 'poss']);
+    let ci = findCol(header, ['conf', 'conference']);
+    let start = 1;
+    if (ti < 0 || oi < 0 || di < 0) {
+      // no recognizable header: assume team, off, def, tempo
+      if (isNaN(num(rows[0][1]))) start = 1; else start = 0;
+      ti = 0; oi = 1; di = 2; pi = rows[0].length > 3 ? 3 : -1; ci = -1;
+    }
+    const teams = [], errors = [];
+    for (let r = start; r < rows.length; r++) {
+      const row = rows[r];
+      const name = (row[ti] || '').replace(/\s+\(\d+\)$/, '').replace(/\s+\d+\s*seed.*$/i, '').trim();
+      const off = num(row[oi]), def = num(row[di]);
+      let tempo = pi >= 0 ? num(row[pi]) : NaN;
+      if (!name || isNaN(off) || isNaN(def)) { if (row.join('').trim()) errors.push(`Row ${r + 1} skipped`); continue; }
+      if (off < 60 || off > 160 || def < 60 || def > 160) { errors.push(`Row ${r + 1} (${name}): ratings look off (expect ~85–130 per 100 possessions)`); continue; }
+      if (isNaN(tempo) || tempo < 50 || tempo > 90) tempo = null;
+      teams.push({ name, off, def, tempo, conf: ci >= 0 ? (row[ci] || '') : '' });
+    }
+    return { teams, errors };
+  }
+
+  // Games import: date, home, away, home_score, away_score, neutral
+  function parseDate(s) {
+    s = String(s).trim();
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3]);
+    m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+    if (m) { let y = +m[3]; if (y < 100) y += 2000; return Date.UTC(y, +m[1] - 1, +m[2]); }
+    m = s.match(/^(\d{4})(\d{2})(\d{2})$/);
+    if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3]);
+    const t = Date.parse(s); return isNaN(t) ? NaN : t;
+  }
+  function parseGames(text) {
+    const rows = parseCSV(text.trim());
+    if (!rows.length) return { games: [], errors: ['Nothing to import.'] };
+    const header = rows[0].map(hkey);
+    let c = {
+      date: findCol(header, ['date', 'gamedate', 'day']),
+      home: findCol(header, ['home', 'hometeam', 'team1', 'teama']),
+      away: findCol(header, ['away', 'awayteam', 'visitor', 'road', 'team2', 'teamb']),
+      hs: findCol(header, ['homescore', 'homepts', 'hscore', 'score1', 'pts1', 'homepoints']),
+      as: findCol(header, ['awayscore', 'awaypts', 'ascore', 'score2', 'pts2', 'awaypoints', 'visitorscore']),
+      neu: findCol(header, ['neutral', 'neutralsite', 'neu', 'site'])
+    };
+    let start = 1;
+    if (c.date < 0 || c.home < 0 || c.away < 0 || c.hs < 0 || c.as < 0) {
+      c = { date: 0, home: 1, away: 2, hs: 3, as: 4, neu: 5 };
+      start = isNaN(parseDate(rows[0][0])) ? 1 : 0;
+    }
+    const games = [], errors = [];
+    for (let r = start; r < rows.length; r++) {
+      const row = rows[r];
+      const date = parseDate(row[c.date]);
+      const home = (row[c.home] || '').trim(), away = (row[c.away] || '').trim();
+      const hs = num(row[c.hs]), as = num(row[c.as]);
+      if (isNaN(date) || !home || !away || isNaN(hs) || isNaN(as)) { errors.push(`Row ${r + 1} skipped`); continue; }
+      const nv = c.neu >= 0 ? String(row[c.neu] || '').trim().toLowerCase() : '';
+      const neutral = ['1', 'true', 'yes', 'y', 'n', 'neutral'].includes(nv);
+      games.push({ date, home, away, hs, as, neutral });
+    }
+    games.sort((a, b) => a.date - b.date);
+    return { games, errors };
+  }
+
+  // ---------- Ratings fit (opponent-adjusted, recency-weighted, ridge-shrunk) ----------
+  // Model: homePts = mu + o[h] + d[a] + hca/2 ; awayPts = mu + o[a] + d[h] - hca/2 (hca=0 on neutral)
+  // o = scoring above average, d = points allowed above average (lower = better defense)
+  function fitRatings(games, opts = {}) {
+    const halfLife = opts.halfLife ?? 45, cap = opts.cap ?? 25, lambda = opts.prior ?? 3;
+    const iters = opts.iters ?? 120;
+    const ref = opts.refDate ?? (games.length ? games[games.length - 1].date : 0);
+    const idx = new Map(), names = [];
+    const id = n => { const k = norm(n); if (!idx.has(k)) { idx.set(k, names.length); names.push(n); } return idx.get(k); };
+    const G = games.map(g => {
+      let hs = g.hs, as = g.as; const m = hs - as;
+      if (cap > 0 && Math.abs(m) > cap) { const ex = (Math.abs(m) - cap) / 2 * Math.sign(m); hs -= ex; as += ex; }
+      const ageDays = (ref - g.date) / 864e5;
+      const w = halfLife > 0 ? Math.pow(0.5, Math.max(0, ageDays) / halfLife) : 1;
+      return { h: id(g.home), a: id(g.away), hs, as, nh: g.neutral ? 0 : 1, w };
+    });
+    const N = names.length;
+    const o = new Float64Array(N), d = new Float64Array(N);
+    const init = opts.init;
+    if (init) for (let i = 0; i < N; i++) { const t = init.teams[norm(names[i])]; if (t) { o[i] = t.o; d[i] = t.d; } }
+    let mu = init ? init.mu : (G.reduce((s, g) => s + g.hs + g.as, 0) / Math.max(1, 2 * G.length));
+    let hca = init ? init.hca : 3;
+    const byTeam = Array.from({ length: N }, () => []);
+    G.forEach((g, k) => { byTeam[g.h].push(k); byTeam[g.a].push(k); });
+    const gp = byTeam.map(l => l.length);
+    for (let it = 0; it < iters; it++) {
+      // offense
+      for (let i = 0; i < N; i++) {
+        let num_ = 0, den = lambda;
+        for (const k of byTeam[i]) {
+          const g = G[k];
+          if (g.h === i) num_ += g.w * (g.hs - mu - d[g.a] - g.nh * hca / 2);
+          else num_ += g.w * (g.as - mu - d[g.h] + g.nh * hca / 2);
+          den += g.w;
+        }
+        o[i] = num_ / den;
+      }
+      // defense
+      for (let i = 0; i < N; i++) {
+        let num_ = 0, den = lambda;
+        for (const k of byTeam[i]) {
+          const g = G[k];
+          if (g.h === i) num_ += g.w * (g.as - mu - o[g.a] + g.nh * hca / 2);
+          else num_ += g.w * (g.hs - mu - o[g.h] - g.nh * hca / 2);
+          den += g.w;
+        }
+        d[i] = num_ / den;
+      }
+      // league mean & home court
+      let sm = 0, sw = 0, sh = 0, swh = 0;
+      for (const g of G) {
+        sm += g.w * ((g.hs - o[g.h] - d[g.a] - g.nh * hca / 2) + (g.as - o[g.a] - d[g.h] + g.nh * hca / 2)); sw += 2 * g.w;
+        if (g.nh) { sh += g.w * ((g.hs - g.as) - ((o[g.h] + d[g.a]) - (o[g.a] + d[g.h]))); swh += g.w; }
+      }
+      mu = sm / sw;
+      if (swh > 0) hca = (sh + 3 * 20) / (swh + 20); // light prior toward 3 pts
+    }
+    const teams = {};
+    for (let i = 0; i < N; i++) teams[norm(names[i])] = { name: names[i], o: o[i], d: d[i], gp: gp[i] };
+    return { teams, mu, hca, n: G.length };
+  }
+
+  // Convert fitted point ratings to library format (per-100-possession scale, assumed tempo)
+  function fitToLibrary(fit, tempo = 68) {
+    return Object.values(fit.teams).map(t => ({
+      name: t.name,
+      off: +((fit.mu + t.o) * 100 / tempo).toFixed(1),
+      def: +((fit.mu + t.d) * 100 / tempo).toFixed(1),
+      tempo: tempo, conf: '', gp: t.gp
+    }));
+  }
+
+  // ---------- Prediction ----------
+  // venue: 'A' (A home), 'B' (B home), 'N' (neutral)
+  function predict(A, B, venue, S, adj = {}) {
+    const L = S.leagueEff, Lt = S.leagueTempo;
+    const tA = A.tempo || Lt, tB = B.tempo || Lt;
+    const poss = tA * tB / Lt;
+    let ptsA = (A.off * B.def / L) * poss / 100;
+    let ptsB = (B.off * A.def / L) * poss / 100;
+    const h = venue === 'A' ? 1 : venue === 'B' ? -1 : 0;
+    ptsA += h * S.hca / 2; ptsB -= h * S.hca / 2;
+    ptsA += adj.a || 0; ptsB += adj.b || 0;
+    const margin = ptsA - ptsB, total = ptsA + ptsB;
+    const pA = Phi(margin / S.sigma);
+    return { ptsA, ptsB, margin, total, pA, pB: 1 - pA, poss };
+  }
+
+  // ---------- Betting math ----------
+  const amToDec = am => am >= 100 ? 1 + am / 100 : am <= -100 ? 1 + 100 / -am : NaN;
+  const amToProb = am => am >= 100 ? 100 / (am + 100) : am <= -100 ? -am / (-am + 100) : NaN;
+  const probToAm = p => p <= 0 || p >= 1 ? NaN : p >= 0.5 ? -100 * p / (1 - p) : 100 * (1 - p) / p;
+  function kelly(p, am) { const b = amToDec(am) - 1; if (!(b > 0)) return 0; return Math.max(0, (b * p - (1 - p)) / b); }
+  // spreadA: sportsbook spread for team A (e.g. -5.5 = A favored by 5.5)
+  function coverProb(margin, spreadA, sigma) { return Phi((margin + spreadA) / sigma); }
+  function overProb(total, line, sigmaT) { return 1 - Phi((line - total) / sigmaT); }
+  // Remove the vig from a two-way moneyline
+  function noVig(amA, amB) { const a = amToProb(amA), b = amToProb(amB); return [a / (a + b), b / (a + b)]; }
+
+  // ---------- Walk-forward backtest ----------
+  function backtest(games, opts = {}) {
+    const startFrac = opts.startFrac ?? 0.35, minGp = opts.minGp ?? 4;
+    if (games.length < 50) return { error: 'Need at least 50 games to backtest.' };
+    const startIdx = Math.floor(games.length * startFrac);
+    const dates = [...new Set(games.slice(startIdx).map(g => g.date))].sort((a, b) => a - b);
+    let fit = null; const res = [];
+    let gi = 0;
+    for (const day of dates) {
+      while (gi < games.length && games[gi].date < day) gi++;
+      const train = games.slice(0, gi);
+      fit = fitRatings(train, { ...opts, refDate: day, init: fit, iters: fit ? 25 : 120 });
+      for (const g of games) {
+        if (g.date !== day) continue;
+        const th = fit.teams[norm(g.home)], ta = fit.teams[norm(g.away)];
+        if (!th || !ta || th.gp < minGp || ta.gp < minGp) continue;
+        const nh = g.neutral ? 0 : 1;
+        const pm = (th.o + ta.d) - (ta.o + th.d) + nh * fit.hca;
+        const pt = 2 * fit.mu + th.o + ta.d + ta.o + th.d;
+        res.push({ pm, pt, am: g.hs - g.as, at: g.hs + g.as });
+      }
+    }
+    if (!res.length) return { error: 'No testable games (teams need more games played).' };
+    const n = res.length;
+    const rmse = Math.sqrt(res.reduce((s, r) => s + (r.am - r.pm) ** 2, 0) / n);
+    const rmseT = Math.sqrt(res.reduce((s, r) => s + (r.at - r.pt) ** 2, 0) / n);
+    // Calibrate sigma by maximum likelihood on win/loss outcomes (better than raw RMSE, which blowouts inflate)
+    let sigma = rmse, best = Infinity;
+    for (let sg = 6; sg <= 20; sg += 0.1) {
+      let L = 0;
+      for (const r of res) { const p = Phi(r.pm / sg); L -= Math.log(Math.min(1 - 1e-9, Math.max(1e-9, r.am > 0 ? p : 1 - p))); }
+      if (L < best) { best = L; sigma = sg; }
+    }
+    let correct = 0, brier = 0, ll = 0, mae = 0, maeT = 0;
+    const bins = Array.from({ length: 5 }, (_, i) => ({ lo: 50 + i * 10, hi: 60 + i * 10, n: 0, p: 0, w: 0 }));
+    for (const r of res) {
+      const p = Phi(r.pm / sigma); const won = r.am > 0 ? 1 : 0;
+      if ((r.pm > 0) === (r.am > 0)) correct++;
+      brier += (p - won) ** 2;
+      ll -= Math.log(Math.min(1 - 1e-9, Math.max(1e-9, won ? p : 1 - p)));
+      mae += Math.abs(r.am - r.pm); maeT += Math.abs(r.at - r.pt);
+      const fav = Math.max(p, 1 - p), favWon = p >= 0.5 ? won : 1 - won;
+      const b = bins[Math.min(4, Math.floor((fav * 100 - 50) / 10))];
+      b.n++; b.p += fav; b.w += favWon;
+    }
+    return {
+      n, accuracy: correct / n, mae: mae / n, maeTotal: maeT / n, rmse, rmseTotal: rmseT,
+      brier: brier / n, logloss: ll / n, sigma, sigmaTotal: rmseT, hca: fit.hca,
+      bins: bins.map(b => ({ label: `${b.lo}–${b.hi}%`, n: b.n, pred: b.n ? b.p / b.n : null, actual: b.n ? b.w / b.n : null }))
+    };
+  }
+
+  // ---------- Demo league (fictional) ----------
+  function demoSeason(seed = 7) {
+    let s = seed >>> 0;
+    const rnd = () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    const gauss = () => { let u = 0, v = 0; while (!u) u = rnd(); v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+    const places = ['Ashford', 'Briarwood', 'Coldwater', 'Dunmore', 'Elkridge', 'Fairhaven', 'Glenmoor', 'Hollis', 'Ironvale', 'Juniper', 'Kestrel Bay', 'Larchmont', 'Millbrook', 'Northgate', 'Oakhurst', 'Pinecrest', 'Quarry Hill', 'Redfield', 'Stonebridge', 'Thornbury', 'Upton', 'Valewood', 'Westbrook', 'Yarrow'];
+    const names = []; places.forEach(p => { names.push(p + ' State'); names.push(p + ' Tech'); });
+    const N = names.length, mu = 71.5, hca = 3.2;
+    const T = names.map(() => ({ o: gauss() * 6, d: gauss() * 6 }));
+    const games = []; const start = Date.UTC(2025, 10, 3);
+    for (let day = 0; day < 125; day += 1) {
+      if (rnd() < 0.35) continue;
+      const order = names.map((_, i) => i).sort(() => rnd() - 0.5);
+      const k = 2 + Math.floor(rnd() * 8);
+      for (let j = 0; j + 1 < k * 2 && j + 1 < N; j += 2) {
+        const h = order[j], a = order[j + 1];
+        const neutral = rnd() < 0.08;
+        const drift = day / 125; // teams evolve a bit over the season
+        const oh = T[h].o + drift * (h % 3 - 1) * 2, oa = T[a].o + drift * (a % 3 - 1) * 2;
+        const hs = Math.round(mu + oh + T[a].d + (neutral ? 0 : hca / 2) + gauss() * 8);
+        let as = Math.round(mu + oa + T[h].d - (neutral ? 0 : hca / 2) + gauss() * 8);
+        if (as === hs) as += rnd() < 0.5 ? 3 : -3;
+        games.push({ date: start + day * 864e5, home: names[h], away: names[a], hs, as, neutral });
+      }
+    }
+    return games;
+  }
+  function gamesToCSV(games) {
+    const f = t => new Date(t).toISOString().slice(0, 10);
+    return 'date,home,away,home_score,away_score,neutral\n' + games.map(g => [f(g.date), g.home, g.away, g.hs, g.as, g.neutral ? 1 : 0].join(',')).join('\n');
+  }
+
+  return { norm, Phi, parseCSV, parseRatings, parseGames, fitRatings, fitToLibrary, predict, amToDec, amToProb, probToAm, kelly, coverProb, overProb, noVig, backtest, demoSeason, gamesToCSV };
+})();
+if (typeof module !== 'undefined') module.exports = Engine;
+
+</script>
+<script>
+(() => {
+const E = Engine;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f1 = x => (x == null || !isFinite(x)) ? '–' : (+x).toFixed(1);
+const pct = (x, d = 1) => (x == null || !isFinite(x)) ? '–' : (x * 100).toFixed(d) + '%';
+const sgn = (x, d = 1) => (x > 0 ? '+' : '') + (+x).toFixed(d);
+const am = x => !isFinite(x) ? '–' : (x > 0 ? '+' : '') + Math.round(x);
+const val = id => { const v = parseFloat($(id).value); return isFinite(v) ? v : null; };
+
+const DEFAULTS = { hca: 3.2, sigma: 11, sigmaTotal: 15, leagueEff: null, leagueTempo: null, kellyFrac: 0.25 };
+const state = { teams: [], settings: { ...DEFAULTS }, log: [], ui: { venue: 'B' } };
+let teamIndex = new Map();
+const reindex = () => { teamIndex = new Map(state.teams.map(t => [E.norm(t.name), t])); };
+const findTeam = n => teamIndex.get(E.norm(n));
+
+function S() {
+  const s = state.settings, T = state.teams;
+  const avgOff = T.length ? T.reduce((a, t) => a + t.off, 0) / T.length : 105;
+  const tt = T.filter(t => t.tempo);
+  const avgT = tt.length ? tt.reduce((a, t) => a + t.tempo, 0) / tt.length : 68;
+  return { hca: s.hca, sigma: s.sigma, sigmaTotal: s.sigmaTotal, kellyFrac: s.kellyFrac, leagueEff: s.leagueEff || avgOff, leagueTempo: s.leagueTempo || avgT };
+}
+
+// ---------- Persistence: account (db) with browser fallback ----------
+const store = { mode: 'none', db: null, uid: null, chains: {}, timers: {} };
+const LS = 'hoopsOracle:';
+function setStatus() {
+  const el = $('saveStatus');
+  if (store.mode === 'db') el.innerHTML = '<b>●</b> Saved to your account';
+  else if (store.mode === 'local') el.textContent = 'Saved in this browser only';
+  else el.textContent = 'Not saved (changes last this visit)';
+}
+function save(key) {
+  clearTimeout(store.timers[key]);
+  store.timers[key] = setTimeout(() => {
+    const body = key === 'teams' ? { list: state.teams } : key === 'settings' ? { ...state.settings } : { entries: state.log };
+    if (store.mode === 'db') {
+      const ref = store.db.collection('data/users/' + store.uid).doc(key);
+      store.chains[key] = (store.chains[key] || Promise.resolve()).then(() => ref.set(JSON.parse(JSON.stringify(body)))).catch(err => {
+        console.warn('save failed', err);
+        if (err && err.code === 'quota_exceeded') $('saveStatus').textContent = 'Account storage full';
+        else { store.mode = 'local'; setStatus(); saveLocal(key, body); }
+      });
+    } else saveLocal(key, body);
+  }, 500);
+}
+function saveLocal(key, body) { try { localStorage.setItem(LS + key, JSON.stringify(body)); if (store.mode === 'none') { store.mode = 'local'; setStatus(); } } catch (e) {} }
+function loadLocal() {
+  try {
+    const t = JSON.parse(localStorage.getItem(LS + 'teams') || 'null'); if (t && t.list) state.teams = t.list;
+    const s = JSON.parse(localStorage.getItem(LS + 'settings') || 'null'); if (s) state.settings = { ...DEFAULTS, ...s };
+    const l = JSON.parse(localStorage.getItem(LS + 'log') || 'null'); if (l && l.entries) state.log = l.entries;
+    store.mode = 'local';
+  } catch (e) { store.mode = 'none'; }
+}
+async function initStore() {
+  let done = false;
+  const fallback = () => { if (done) return; done = true; loadLocal(); afterLoad(); };
+  const timer = setTimeout(fallback, 10000);
+  try {
+    if (!window.claude || !window.claude.use) { clearTimeout(timer); return fallback(); }
+    const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+    const uid = user ? await user.id() : null;
+    if (!db || !uid) { clearTimeout(timer); return fallback(); }
+    const col = db.collection('data/users/' + uid);
+    const [t, s, l] = await Promise.all(['teams', 'settings', 'log'].map(k => col.doc(k).get()));
+    clearTimeout(timer); if (done) return; done = true;
+    store.db = db; store.uid = uid; store.mode = 'db';
+    if (t.exists && t.data().list) state.teams = t.data().list;
+    if (s.exists) state.settings = { ...DEFAULTS, ...s.data() };
+    if (l.exists && l.data().entries) state.log = l.data().entries;
+    afterLoad();
+  } catch (e) { clearTimeout(timer); console.warn(e); fallback(); }
+}
+function afterLoad() { reindex(); setStatus(); renderAll(); }
+
+// ---------- Routing ----------
+const VIEWS = ['predict', 'slate', 'teams', 'build', 'log', 'guide'];
+function route() {
+  const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'predict';
+  VIEWS.forEach(x => $('v-' + x).classList.toggle('on', x === v));
+  document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.v === v));
+  if (v === 'log') renderLog();
+  if (v === 'teams') renderTeams();
+}
+window.addEventListener('hashchange', route);
+
+// ---------- Predict ----------
+function sideHTML(k, label) {
+  return `<div class="teamhead"><b>${label}</b><span class="badge" id="badge${k}">–</span></div>
+  <input id="name${k}" list="teamList" placeholder="Team name" autocomplete="off">
+  <div class="row"><div><label>Off</label><input id="off${k}" type="number" step="0.1"></div><div><label>Def</label><input id="def${k}" type="number" step="0.1"></div><div><label>Tempo</label><input id="tem${k}" type="number" step="0.1"></div></div>
+  <label>Lineup adjustment (pts)</label><input id="adj${k}" type="number" step="0.5" value="0" title="Negative if a key player is out, e.g. -3">`;
+}
+$('sideA').innerHTML = sideHTML('A', 'Team A (away)');
+$('sideB').innerHTML = sideHTML('B', 'Team B (home)');
+function fillFromLib(k) {
+  const t = findTeam($('name' + k).value);
+  const b = $('badge' + k);
+  if (t) {
+    $('off' + k).value = t.off; $('def' + k).value = t.def; $('tem' + k).value = t.tempo ?? '';
+    const rank = rankOf(t); b.textContent = rank ? `#${rank} of ${state.teams.length}` : 'In library'; b.className = 'badge ok';
+  } else { b.textContent = $('name' + k).value.trim() ? 'Not in library: enter ratings' : '–'; b.className = 'badge' + ($('name' + k).value.trim() ? ' no' : ''); }
+}
+let rankCache = null;
+function rankOf(t) {
+  if (!rankCache) { const L = S().leagueEff; rankCache = new Map([...state.teams].sort((a, b) => net(b) - net(a)).map((x, i) => [x, i + 1])); }
+  return rankCache.get(t);
+}
+const net = t => t.off - t.def;
+['A', 'B'].forEach(k => {
+  $('name' + k).addEventListener('input', () => { fillFromLib(k); renderResult(); });
+  ['off', 'def', 'tem', 'adj'].forEach(f => $(f + k).addEventListener('input', renderResult));
+});
+$('venue').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.ui.venue = b.dataset.v; [...$('venue').children].forEach(x => x.classList.toggle('on', x === b));
+  $('sideA').querySelector('b').textContent = b.dataset.v === 'A' ? 'Team A (home)' : b.dataset.v === 'N' ? 'Team A' : 'Team A (away)';
+  $('sideB').querySelector('b').textContent = b.dataset.v === 'B' ? 'Team B (home)' : b.dataset.v === 'N' ? 'Team B' : 'Team B (away)';
+  renderResult();
+});
+['favSide', 'spread', 'spreadOdds', 'total', 'totalOdds', 'mlA', 'mlB'].forEach(id => $(id).addEventListener('input', renderResult));
+
+function readSide(k) {
+  const off = val('off' + k), def = val('def' + k);
+  if (off == null || def == null) return null;
+  return { name: $('name' + k).value.trim() || ('Team ' + k), off, def, tempo: val('tem' + k), adj: val('adj' + k) || 0 };
+}
+
+// Analyze one game against market lines. spreadA = sportsbook spread for A.
+function analyze(P, lines, s) {
+  const out = [];
+  if (lines.spreadA != null) {
+    const odds = lines.spreadOdds ?? -110, be = E.amToProb(odds), dec = E.amToDec(odds);
+    const pA = E.coverProb(P.margin, lines.spreadA, s.sigma), pB = 1 - pA;
+    const side = pA >= pB ? 'A' : 'B', p = Math.max(pA, pB);
+    out.push({ kind: 'Spread', side, p, edge: p - be, ev: p * (dec - 1) - (1 - p), kelly: E.kelly(p, odds) * s.kellyFrac,
+      line: side === 'A' ? lines.spreadA : -lines.spreadA, ptsEdge: side === 'A' ? P.margin + lines.spreadA : -(P.margin + lines.spreadA) });
+  }
+  if (lines.total != null) {
+    const odds = lines.totalOdds ?? -110, be = E.amToProb(odds), dec = E.amToDec(odds);
+    const po = E.overProb(P.total, lines.total, s.sigmaTotal), side = po >= 0.5 ? 'Over' : 'Under', p = Math.max(po, 1 - po);
+    out.push({ kind: 'Total', side, p, edge: p - be, ev: p * (dec - 1) - (1 - p), kelly: E.kelly(p, odds) * s.kellyFrac, line: lines.total, ptsEdge: Math.abs(P.total - lines.total) });
+  }
+  if (lines.mlA != null || lines.mlB != null) {
+    for (const [k, ml, p] of [['A', lines.mlA, P.pA], ['B', lines.mlB, P.pB]]) {
+      if (ml == null || !isFinite(E.amToDec(ml))) continue;
+      const dec = E.amToDec(ml);
+      out.push({ kind: 'Moneyline', side: k, p, edge: p - E.amToProb(ml), ev: p * (dec - 1) - (1 - p), kelly: E.kelly(p, ml) * s.kellyFrac, line: ml });
+    }
+  }
+  return out;
+}
+const tier = e => e >= 0.04 ? 'strong' : e > 0.015 ? 'val' : 'pass';
+const tierLabel = e => e >= 0.04 ? '<span class="tag g">STRONG VALUE</span>' : e > 0.015 ? '<span class="tag g">VALUE</span>' : e > 0 ? '<span class="tag y">THIN</span>' : '<span class="tag m">NO EDGE</span>';
+
+function currentLines() {
+  const fav = $('favSide').value, sp = val('spread');
+  let spreadA = null;
+  if (fav && sp != null) spreadA = fav === 'A' ? -Math.abs(sp) : Math.abs(sp);
+  return { spreadA, spreadOdds: val('spreadOdds') ?? -110, total: val('total'), totalOdds: val('totalOdds') ?? -110, mlA: val('mlA'), mlB: val('mlB') };
+}
+let lastPred = null;
+function renderResult() {
+  const A = readSide('A'), B = readSide('B'), el = $('result');
+  if (!A || !B) {
+    lastPred = null;
+    el.innerHTML = `<h2>Prediction</h2><div class="empty">Pick two teams from your library, or type each team's offense and defense ratings, to see the projection.</div>`;
+    return;
+  }
+  const s = S(), v = state.ui.venue;
+  const P = E.predict(A, B, v, s, { a: A.adj, b: B.adj });
+  const lines = currentLines();
+  lastPred = { A, B, v, P, lines };
+  const fav = P.margin >= 0 ? A : B, favP = Math.max(P.pA, P.pB);
+  const modelSpreadA = -P.margin;
+  const picks = analyze(P, lines, s);
+  const nm = k => esc(k === 'A' ? A.name : B.name);
+  const pickRow = x => {
+    const what = x.kind === 'Spread' ? `${nm(x.side)} ${sgn(x.line)}` : x.kind === 'Total' ? `${x.side} ${f1(x.line)}` : `${nm(x.side)} ${am(x.line)}`;
+    const det = x.kind === 'Moneyline' ? `Model ${pct(x.p)} vs market ${pct(E.amToProb(x.line))}` : `Model ${pct(x.p)} to win this bet · ${f1(x.ptsEdge)} pts off the line`;
+    return `<div class="pick ${tier(x.edge)}"><div><div class="t">${x.kind}: ${what} ${tierLabel(x.edge)}</div><div class="d">${det}</div></div>
+      <div class="e"><div class="${x.edge > 0 ? 'good' : 'muted'}">${sgn(x.edge * 100)}%</div><div class="small muted">EV ${sgn(x.ev * 100)}¢/$ · stake ${pct(x.kelly)}</div></div></div>`;
+  };
+  el.innerHTML = `<h2>Prediction</h2>
+    <div class="score"><div><div class="nm">${esc(A.name)}</div><div class="pts mono" style="color:${P.margin >= 0 ? 'var(--accent)' : 'var(--text)'}">${Math.round(P.ptsA)}</div></div>
+      <div class="vs">${v === 'N' ? 'neutral' : v === 'A' ? '← home' : 'home →'}</div>
+      <div><div class="nm">${esc(B.name)}</div><div class="pts mono" style="color:${P.margin < 0 ? 'var(--accent)' : 'var(--text)'}">${Math.round(P.ptsB)}</div></div></div>
+    <div class="row small" style="justify-content:space-between"><span>${esc(A.name)} <b class="mono">${pct(P.pA)}</b></span><span style="text-align:right"><b class="mono">${pct(P.pB)}</b> ${esc(B.name)}</span></div>
+    <div class="probbar"><div style="width:${P.pA * 100}%;background:var(--accent)"></div><div style="width:${P.pB * 100}%;background:var(--blue)"></div></div>
+    <div class="kpis">
+      <div class="kpi"><div class="k">Model spread</div><div class="v">${sgn(-Math.abs(P.margin))}</div><div class="s">${esc(shortName(fav.name))} · ${f1(P.ptsA)}–${f1(P.ptsB)}</div></div>
+      <div class="kpi"><div class="k">Projected total</div><div class="v">${f1(P.total)}</div><div class="s">${f1(P.poss)} possessions</div></div>
+      <div class="kpi"><div class="k">Fair moneyline</div><div class="v">${am(E.probToAm(P.pA))}</div><div class="s">${esc(shortName(B.name))} ${am(E.probToAm(P.pB))}</div></div>
+      <div class="kpi"><div class="k">Confidence</div><div class="v">${favP >= .85 ? 'High' : favP >= .68 ? 'Medium' : 'Toss-up'}</div><div class="s">${esc(shortName(fav.name))} wins ${pct(favP, 0)}</div></div>
+    </div>
+    <h3 style="margin-top:16px">Bets vs the market</h3>
+    ${picks.length ? picks.map(pickRow).join('') : '<div class="note" style="margin-top:0">Enter a spread, total or moneyline on the left to see where the model disagrees with the book.</div>'}
+    <div class="btns"><button class="btn" id="saveLog">Save to track record</button><button class="btn ghost" id="swap">Swap teams</button></div>
+    <div class="msg" id="predMsg"></div>`;
+  $('saveLog').onclick = saveToLog;
+  $('swap').onclick = swapTeams;
+}
+const shortName = n => n.length > 14 ? n.slice(0, 13) + '…' : n;
+function swapTeams() {
+  ['name', 'off', 'def', 'tem', 'adj'].forEach(f => { const a = $(f + 'A').value; $(f + 'A').value = $(f + 'B').value; $(f + 'B').value = a; });
+  const m = { A: 'B', B: 'A', N: 'N' }; const nv = m[state.ui.venue];
+  $('venue').querySelector(`[data-v="${nv}"]`).click();
+  const fs = $('favSide').value; if (fs) $('favSide').value = m[fs];
+  const a = $('mlA').value; $('mlA').value = $('mlB').value; $('mlB').value = a;
+  fillFromLib('A'); fillFromLib('B'); renderResult();
+}
+function saveToLog() {
+  if (!lastPred) return;
+  const { A, B, v, P, lines } = lastPred;
+  const picks = analyze(P, lines, S());
+  const sp = picks.find(x => x.kind === 'Spread'), tt = picks.find(x => x.kind === 'Total');
+  state.log.unshift({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), ts: Date.now(),
+    a: A.name, b: B.name, venue: v, pa: +P.ptsA.toFixed(1), pb: +P.ptsB.toFixed(1), pA: +P.pA.toFixed(4),
+    spreadA: lines.spreadA, total: lines.total,
+    spPick: sp ? { side: sp.side, edge: +sp.edge.toFixed(4) } : null,
+    totPick: tt ? { side: tt.side, edge: +tt.edge.toFixed(4) } : null,
+    fa: null, fb: null
+  });
+  if (state.log.length > 1500) state.log.length = 1500;
+  save('log');
+  $('predMsg').innerHTML = '<span class="good">Saved.</span> Enter the final score later in <a href="#log">Track record</a>.';
+}
+
+// ---------- Slate ----------
+function parseSlateLine(line) {
+  const parts = line.split(',').map(s => s.trim());
+  const m = parts[0];
+  let A, B, venue;
+  let mm = m.match(/^(.*?)\s+(?:@|at)\s+(.*)$/i);
+  if (mm) { A = mm[1]; B = mm[2]; venue = 'B'; }
+  else if ((mm = m.match(/^(.*?)\s+(?:vs\.?|v\.?|-)\s+(.*)$/i))) { A = mm[1]; B = mm[2]; venue = 'N'; }
+  else return null;
+  B = B.replace(/\s*\((n|neutral)\)\s*$/i, ''); A = A.replace(/^#?\d+\s+/, ''); B = B.replace(/^#?\d+\s+/, '');
+  const spreadB = parts[1] !== undefined && parts[1] !== '' ? parseFloat(parts[1].replace(/pk|pick/i, '0')) : null;
+  const total = parts[2] !== undefined && parts[2] !== '' ? parseFloat(parts[2]) : null;
+  return { A: A.trim(), B: B.trim(), venue, spreadA: spreadB == null || isNaN(spreadB) ? null : -spreadB, total: total == null || isNaN(total) ? null : total };
+}
+let slateRows = [];
+$('slateGo').onclick = () => {
+  const s = S(), lines = $('slateIn').value.split('\n').map(x => x.trim()).filter(Boolean);
+  slateRows = []; const miss = [];
+  for (const ln of lines) {
+    const g = parseSlateLine(ln);
+    if (!g) { miss.push(`Couldn't read: "${ln}"`); continue; }
+    const a = findTeam(g.A), b = findTeam(g.B);
+    if (!a || !b) { miss.push(`Not in library: ${[!a && g.A, !b && g.B].filter(Boolean).join(', ')}`); continue; }
+    const P = E.predict(a, b, g.venue, s);
+    const picks = analyze(P, { spreadA: g.spreadA, total: g.total, spreadOdds: -110, totalOdds: -110 }, s);
+    const best = picks.reduce((m, x) => (!m || x.edge > m.edge) ? x : m, null);
+    slateRows.push({ g, a, b, P, picks, best });
+  }
+  slateRows.sort((x, y) => (y.best ? y.best.edge : -1) - (x.best ? x.best.edge : -1));
+  $('slateMsg').innerHTML = `${slateRows.length} game${slateRows.length === 1 ? '' : 's'} predicted.` + (miss.length ? `<div class="warn small" style="margin-top:6px">${miss.map(esc).join('<br>')}</div>` : '');
+  renderSlate();
+};
+function renderSlate() {
+  if (!slateRows.length) { $('slateOut').innerHTML = '<div class="empty">No games predicted.</div>'; return; }
+  $('slateOut').innerHTML = `<table><thead><tr><th>Matchup</th><th class="n">Projected</th><th class="n">Win %</th><th class="n">Model line</th><th class="n">Book line</th><th>Spread pick</th><th class="n">Proj total</th><th class="n">Book total</th><th>Total pick</th><th>Best edge</th></tr></thead><tbody>${
+    slateRows.map((r, i) => {
+      const sp = r.picks.find(x => x.kind === 'Spread'), tt = r.picks.find(x => x.kind === 'Total');
+      const homeLine = r.P.margin; // model spread for B (home/second team): + means B is the underdog
+      return `<tr class="click" data-i="${i}"><td><b>${esc(r.a.name)}</b> ${r.g.venue === 'N' ? 'vs' : '@'} <b>${esc(r.b.name)}</b></td>
+        <td class="n">${Math.round(r.P.ptsA)}–${Math.round(r.P.ptsB)}</td>
+        <td class="n">${pct(r.P.pA, 0)} / ${pct(r.P.pB, 0)}</td>
+        <td class="n">${sgn(homeLine)}</td>
+        <td class="n">${r.g.spreadA == null ? '–' : sgn(-r.g.spreadA)}</td>
+        <td>${sp ? `${esc(sp.side === 'A' ? r.a.name : r.b.name)} ${sgn(sp.line)} <span class="${sp.edge > 0 ? 'good' : 'muted'} mono small">${pct(sp.p, 0)}</span>` : '–'}</td>
+        <td class="n">${f1(r.P.total)}</td>
+        <td class="n">${r.g.total == null ? '–' : f1(r.g.total)}</td>
+        <td>${tt ? `${tt.side} <span class="${tt.edge > 0 ? 'good' : 'muted'} mono small">${pct(tt.p, 0)}</span>` : '–'}</td>
+        <td>${r.best ? tierLabel(r.best.edge) + ` <span class="mono small">${sgn(r.best.edge * 100)}%</span>` : '–'}</td></tr>`;
+    }).join('')}</tbody></table><div class="note">Win % is team listed first / second. Lines are shown for the home (second) team. Edges assume −110 odds.</div>`;
+  $('slateOut').querySelectorAll('tr.click').forEach(tr => tr.onclick = () => openInPredict(slateRows[+tr.dataset.i]));
+}
+function openInPredict(r) {
+  $('nameA').value = r.a.name; $('nameB').value = r.b.name; $('adjA').value = 0; $('adjB').value = 0;
+  fillFromLib('A'); fillFromLib('B');
+  $('venue').querySelector(`[data-v="${r.g.venue}"]`).click();
+  if (r.g.spreadA != null) { $('favSide').value = r.g.spreadA <= 0 ? 'A' : 'B'; $('spread').value = Math.abs(r.g.spreadA); } else { $('favSide').value = ''; $('spread').value = ''; }
+  $('total').value = r.g.total ?? ''; $('mlA').value = ''; $('mlB').value = '';
+  location.hash = 'predict'; renderResult();
+}
+$('slateDemo').onclick = () => {
+  if (state.teams.length < 4) { $('slateMsg').innerHTML = '<span class="warn">Load some teams first (Team ratings tab, or the demo season in Build &amp; backtest).</span>'; return; }
+  const T = [...state.teams].sort(() => Math.random() - .5).slice(0, 10), s = S(), out = [];
+  for (let i = 0; i + 1 < T.length; i += 2) {
+    const P = E.predict(T[i], T[i + 1], i % 6 === 4 ? 'N' : 'B', s);
+    const book = Math.round((-P.margin + (Math.random() - .5) * 5) * 2) / 2; // book line for second team, with noise
+    out.push(`${T[i].name} ${i % 6 === 4 ? 'vs' : '@'} ${T[i + 1].name}, ${sgn(-book)}, ${(Math.round((P.total + (Math.random() - .5) * 8) * 2) / 2).toFixed(1)}`);
+  }
+  $('slateIn').value = out.join('\n');
+  $('slateMsg').textContent = 'Demo lines are made up. Paste real ones from your sportsbook.';
+};
+
+// ---------- Teams ----------
+let teamSort = { k: 'net', dir: -1 };
+function renderTeams() {
+  rankCache = null;
+  $('teamCount').textContent = state.teams.length ? `· ${state.teams.length} teams` : '';
+  const q = E.norm($('teamSearch').value);
+  const ranked = [...state.teams].sort((a, b) => net(b) - net(a));
+  const rk = new Map(ranked.map((t, i) => [t, i + 1]));
+  let rows = state.teams.filter(t => !q || E.norm(t.name).includes(q) || E.norm(t.conf).includes(q));
+  const k = teamSort.k, dir = teamSort.dir;
+  rows.sort((a, b) => {
+    const va = k === 'net' ? net(a) : k === 'name' ? a.name.toLowerCase() : k === 'def' ? -a.def : (a[k] ?? -1);
+    const vb = k === 'net' ? net(b) : k === 'name' ? b.name.toLowerCase() : k === 'def' ? -b.def : (b[k] ?? -1);
+    return (va > vb ? 1 : va < vb ? -1 : 0) * dir;
+  });
+  if (!state.teams.length) { $('teamTable').innerHTML = '<div class="empty">No teams yet. Paste ratings above, or build them in the Build &amp; backtest tab.</div>'; return; }
+  const th = (key, lbl, n) => `<th class="sort${n ? ' n' : ''}" data-k="${key}">${lbl}${teamSort.k === key ? (teamSort.dir < 0 ? ' ▼' : ' ▲') : ''}</th>`;
+  $('teamTable').innerHTML = `<table><thead><tr><th class="n">Rk</th>${th('name', 'Team')}<th>Conf</th>${th('off', 'Off', 1)}${th('def', 'Def', 1)}${th('tempo', 'Tempo', 1)}${th('net', 'Net', 1)}<th></th></tr></thead><tbody>${
+    rows.map(t => `<tr><td class="n muted">${rk.get(t)}</td><td><b>${esc(t.name)}</b></td><td class="muted">${esc(t.conf || '')}</td><td class="n">${f1(t.off)}</td><td class="n">${f1(t.def)}</td><td class="n">${t.tempo ? f1(t.tempo) : '<span class="muted">avg</span>'}</td><td class="n ${net(t) >= 0 ? 'good' : 'bad'}">${sgn(net(t))}</td><td><button class="btn ghost sm" data-del="${esc(t.name)}">✕</button></td></tr>`).join('')
+  }</tbody></table>`;
+  $('teamTable').querySelectorAll('th.sort').forEach(h => h.onclick = () => { const kk = h.dataset.k; teamSort = { k: kk, dir: teamSort.k === kk ? -teamSort.dir : (kk === 'name' ? 1 : -1) }; renderTeams(); });
+  $('teamTable').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const t = findTeam(b.dataset.del); state.teams = state.teams.filter(x => x !== t); teamsChanged(); });
+}
+function teamsChanged() { reindex(); rankCache = null; save('teams'); renderTeams(); renderDatalist(); updateNoTeams(); fillFromLib('A'); fillFromLib('B'); renderResult(); }
+function renderDatalist() { $('teamList').innerHTML = state.teams.map(t => `<option value="${esc(t.name)}">`).join(''); }
+function updateNoTeams() { $('noTeamsNote').classList.toggle('hide', state.teams.length > 0); }
+$('teamSearch').addEventListener('input', renderTeams);
+function importRatings(replace) {
+  const r = E.parseRatings($('ratingsIn').value);
+  if (!r.teams.length) { $('impMsg').innerHTML = `<span class="bad">No teams found.</span> <span class="muted">Check that the paste includes team, offense and defense columns.</span>`; return; }
+  if (replace) state.teams = r.teams;
+  else { reindex(); for (const t of r.teams) { const ex = findTeam(t.name); if (ex) Object.assign(ex, t); else state.teams.push(t); } }
+  teamsChanged();
+  const noTempo = r.teams.filter(t => !t.tempo).length;
+  $('impMsg').innerHTML = `<span class="good">Imported ${r.teams.length} teams.</span>` + (noTempo ? ` <span class="muted">${noTempo} without tempo use the league average.</span>` : '') + (r.errors.length ? `<div class="warn small" style="margin-top:6px">${r.errors.slice(0, 6).map(esc).join('<br>')}${r.errors.length > 6 ? `<br>…and ${r.errors.length - 6} more` : ''}</div>` : '');
+  $('ratingsIn').value = '';
+}
+$('impReplace').onclick = () => importRatings(true);
+$('impMerge').onclick = () => importRatings(false);
+$('addTeam').onclick = () => {
+  const name = $('addName').value.trim(), off = val('addOff'), def = val('addDef'), tempo = val('addTempo');
+  if (!name || off == null || def == null) { $('impMsg').innerHTML = '<span class="warn">Name, Off and Def are needed to add a team.</span>'; return; }
+  const ex = findTeam(name);
+  if (ex) Object.assign(ex, { off, def, tempo }); else state.teams.push({ name, off, def, tempo, conf: '' });
+  ['addName', 'addOff', 'addDef', 'addTempo'].forEach(i => $(i).value = '');
+  teamsChanged();
+};
+let clearArmed = false;
+$('clearTeams').onclick = () => {
+  if (!clearArmed) { clearArmed = true; $('clearTeams').textContent = 'Click again to clear'; setTimeout(() => { clearArmed = false; $('clearTeams').textContent = 'Clear all'; }, 3000); return; }
+  clearArmed = false; $('clearTeams').textContent = 'Clear all'; state.teams = []; teamsChanged();
+};
+$('copyCsv').onclick = async () => {
+  const csv = 'Team,Conf,Off,Def,Tempo\n' + state.teams.map(t => [`"${t.name.replace(/"/g, '""')}"`, t.conf || '', t.off, t.def, t.tempo ?? ''].join(',')).join('\n');
+  try { await navigator.clipboard.writeText(csv); $('copyCsv').textContent = 'Copied!'; } catch (e) { $('ratingsIn').value = csv; $('copyCsv').textContent = 'Shown in box above'; }
+  setTimeout(() => $('copyCsv').textContent = 'Copy CSV', 2000);
+};
+// settings
+const SET_MAP = { sHca: 'hca', sSigma: 'sigma', sSigmaT: 'sigmaTotal', sEff: 'leagueEff', sTempo: 'leagueTempo', sKelly: 'kellyFrac' };
+function renderSettings() { for (const [id, k] of Object.entries(SET_MAP)) $(id).value = state.settings[k] ?? ''; $('sEff').placeholder = 'auto: ' + f1(S().leagueEff); $('sTempo').placeholder = 'auto: ' + f1(S().leagueTempo); }
+for (const [id, k] of Object.entries(SET_MAP)) $(id).addEventListener('input', () => {
+  const v = val(id);
+  if (k === 'leagueEff' || k === 'leagueTempo') state.settings[k] = v; else if (v != null && v >= 0) state.settings[k] = v;
+  save('settings'); renderResult();
+});
+$('sReset').onclick = () => { state.settings = { ...DEFAULTS }; save('settings'); renderSettings(); renderResult(); };
+
+// ---------- Build & backtest ----------
+let lastFit = null, lastBt = null;
+const bOpts = () => ({ halfLife: val('bHalf') ?? 45, cap: val('bCap') ?? 25, prior: val('bPrior') ?? 3 });
+$('bDemo').onclick = () => { $('gamesIn').value = E.gamesToCSV(E.demoSeason()); $('bMsg').innerHTML = '<span class="muted">Loaded a fictional 48-team season. Try Fit ratings, then Run backtest.</span>'; };
+function getGames() {
+  const r = E.parseGames($('gamesIn').value);
+  if (!r.games.length) { $('bMsg').innerHTML = '<span class="bad">No games found.</span> <span class="muted">Expected columns: date, home, away, home_score, away_score, neutral.</span>'; return null; }
+  if (r.errors.length) $('bMsg').innerHTML = `<span class="warn small">${r.errors.length} row(s) skipped.</span>`;
+  return r.games;
+}
+$('bFit').onclick = () => {
+  const g = getGames(); if (!g) return;
+  lastFit = E.fitRatings(g, bOpts());
+  const lib = E.fitToLibrary(lastFit, S().leagueTempo && state.teams.length ? 68 : 68);
+  const sorted = lib.sort((a, b) => (b.off - b.def) - (a.off - a.def));
+  $('fitOut').innerHTML = `<h2>Fitted ratings</h2>
+    <div class="kpis" style="margin:0 0 12px"><div class="kpi"><div class="k">Games</div><div class="v">${lastFit.n}</div></div><div class="kpi"><div class="k">Teams</div><div class="v">${sorted.length}</div></div><div class="kpi"><div class="k">Avg points</div><div class="v">${f1(lastFit.mu)}</div></div><div class="kpi"><div class="k">Home court</div><div class="v">${f1(lastFit.hca)}</div><div class="s">points, learned from data</div></div></div>
+    <div class="btns" style="margin:0 0 12px"><button class="btn" id="useFit">Use these ratings in Predict</button></div>
+    <div class="tbl"><table><thead><tr><th class="n">Rk</th><th>Team</th><th class="n">GP</th><th class="n">Off /100</th><th class="n">Def /100</th><th class="n">Net</th><th class="n">vs avg (pts)</th></tr></thead><tbody>${
+      sorted.map((t, i) => `<tr><td class="n muted">${i + 1}</td><td><b>${esc(t.name)}</b></td><td class="n">${t.gp}</td><td class="n">${f1(t.off)}</td><td class="n">${f1(t.def)}</td><td class="n ${t.off - t.def >= 0 ? 'good' : 'bad'}">${sgn(t.off - t.def)}</td><td class="n">${sgn((t.off - t.def) * 0.68)}</td></tr>`).join('')
+    }</tbody></table></div>
+    <div class="note">Points-based ratings are shown on the per-100-possession scale assuming 68 possessions a game, so the Predict math works the same way. Tempo isn't learned from scores alone, so every team gets the average pace.</div>`;
+  $('useFit').onclick = () => {
+    state.teams = sorted.map(t => ({ name: t.name, off: t.off, def: t.def, tempo: 68, conf: '' }));
+    state.settings.hca = +lastFit.hca.toFixed(2); state.settings.leagueEff = null; state.settings.leagueTempo = null;
+    if (lastBt && !lastBt.error) state.settings.sigma = +lastBt.sigma.toFixed(1);
+    save('settings'); renderSettings(); teamsChanged();
+    $('useFit').textContent = 'Loaded ✓';
+    $('bMsg').innerHTML = `<span class="good">Ratings loaded into your library</span>${lastBt && !lastBt.error ? ' with the backtest-calibrated σ' : ''}. Head to <a href="#predict">Predict</a>.`;
+  };
+};
+$('bTest').onclick = () => {
+  const g = getGames(); if (!g) return;
+  $('btOut').innerHTML = '<h2>Backtest</h2><div class="empty">Running…</div>';
+  setTimeout(() => {
+    const t0 = performance.now(); lastBt = E.backtest(g, bOpts()); const ms = performance.now() - t0;
+    if (lastBt.error) { $('btOut').innerHTML = `<h2>Backtest</h2><div class="empty">${esc(lastBt.error)}</div>`; return; }
+    const b = lastBt;
+    const W = 300, H = 200, pad = 30, x = p => pad + (p - .5) / .5 * (W - pad - 10), y = p => H - pad - (p - .5) / .5 * (H - pad - 10);
+    const pts = b.bins.filter(z => z.n);
+    const svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:360px;display:block;margin:6px auto 0">
+      ${[.5, .6, .7, .8, .9, 1].map(v => `<line x1="${x(.5)}" x2="${x(1)}" y1="${y(v)}" y2="${y(v)}" stroke="#26304f"/><text x="${pad - 4}" y="${y(v) + 4}" fill="#8f9bbb" font-size="10" text-anchor="end">${v * 100}</text><text x="${x(v)}" y="${H - pad + 14}" fill="#8f9bbb" font-size="10" text-anchor="middle">${v * 100}</text>`).join('')}
+      <line x1="${x(.5)}" y1="${y(.5)}" x2="${x(1)}" y2="${y(1)}" stroke="#8f9bbb" stroke-dasharray="4 4"/>
+      <polyline fill="none" stroke="#ff7a1a" stroke-width="2.5" points="${pts.map(z => `${x(z.pred)},${y(z.actual)}`).join(' ')}"/>
+      ${pts.map(z => `<circle cx="${x(z.pred)}" cy="${y(z.actual)}" r="${3 + Math.sqrt(z.n) / 2}" fill="#ff7a1a"><title>${z.label}: predicted ${pct(z.pred)}, actual ${pct(z.actual)} (${z.n} games)</title></circle>`).join('')}
+      <text x="${W / 2 + pad / 2}" y="${H - 2}" fill="#8f9bbb" font-size="10" text-anchor="middle">predicted win % (favorite)</text></svg>`;
+    $('btOut').innerHTML = `<h2>Backtest <span class="muted small" style="font-family:Inter;text-transform:none">${b.n} games predicted out-of-sample · ${Math.round(ms)} ms</span></h2>
+      <div class="kpis" style="margin-top:0">
+        <div class="kpi"><div class="k">Winner correct</div><div class="v">${pct(b.accuracy)}</div><div class="s">picking the favorite</div></div>
+        <div class="kpi"><div class="k">Margin error</div><div class="v">${f1(b.mae)}</div><div class="s">avg pts (MAE)</div></div>
+        <div class="kpi"><div class="k">Total error</div><div class="v">${f1(b.maeTotal)}</div><div class="s">avg pts (MAE)</div></div>
+        <div class="kpi"><div class="k">Brier score</div><div class="v">${b.brier.toFixed(3)}</div><div class="s">lower is better · coin flip .250</div></div>
+      </div>
+      <h3 style="margin-top:14px">Calibration</h3>
+      <p class="muted small" style="margin:0">When the model says 80%, does the favorite win about 80% of the time? Points near the dashed line mean yes.</p>
+      ${svg}
+      <div class="note">Best-fit σ = <b class="mono">${f1(b.sigma)}</b> pts (by likelihood) · total σ ≈ <b class="mono">${f1(b.sigmaTotal)}</b> · home court ≈ <b class="mono">${f1(b.hca)}</b>. These are used automatically when you click "Use these ratings". Change the half-life, blowout cap or shrink settings and re-run to tune.</div>`;
+  }, 30);
+};
+
+// ---------- Track record ----------
+function settle(e) {
+  if (e.fa == null || e.fb == null) return null;
+  const m = e.fa - e.fb, t = e.fa + e.fb;
+  const su = (e.pa - e.pb) * m > 0 ? 1 : m === 0 ? null : 0;
+  let ats = null, ou = null;
+  if (e.spPick && e.spreadA != null) { const c = m + e.spreadA; ats = c === 0 ? 'P' : ((c > 0) === (e.spPick.side === 'A') ? 'W' : 'L'); }
+  if (e.totPick && e.total != null) { ou = t === e.total ? 'P' : ((t > e.total) === (e.totPick.side === 'Over') ? 'W' : 'L'); }
+  return { su, ats, ou, err: Math.abs(m - (e.pa - e.pb)), terr: Math.abs(t - (e.pa + e.pb)) };
+}
+function renderLog() {
+  const done = state.log.map(e => ({ e, r: settle(e) })).filter(x => x.r);
+  const cnt = (k, v) => done.filter(x => x.r[k] === v).length;
+  const suN = done.filter(x => x.r.su != null).length, suW = cnt('su', 1);
+  const aW = cnt('ats', 'W'), aL = cnt('ats', 'L'), aP = cnt('ats', 'P'), oW = cnt('ou', 'W'), oL = cnt('ou', 'L'), oP = cnt('ou', 'P');
+  const mae = done.length ? done.reduce((s, x) => s + x.r.err, 0) / done.length : null;
+  const roi = (w, l) => w + l ? ((w * (100 / 110) - l) / (w + l)) : null;
+  $('logStats').innerHTML = `
+    <div class="card kpi"><div class="k">Winners</div><div class="v">${suN ? `${suW}-${suN - suW}` : '–'}</div><div class="s">${suN ? pct(suW / suN) + ' correct' : 'no results yet'}</div></div>
+    <div class="card kpi"><div class="k">Against the spread</div><div class="v">${aW + aL + aP ? `${aW}-${aL}${aP ? '-' + aP : ''}` : '–'}</div><div class="s">${aW + aL ? pct(aW / (aW + aL)) + ' · ROI ' + sgn(roi(aW, aL) * 100) + '%' : 'need 52.4% to profit'}</div></div>
+    <div class="card kpi"><div class="k">Over / under</div><div class="v">${oW + oL + oP ? `${oW}-${oL}${oP ? '-' + oP : ''}` : '–'}</div><div class="s">${oW + oL ? pct(oW / (oW + oL)) + ' · ROI ' + sgn(roi(oW, oL) * 100) + '%' : 'at −110'}</div></div>
+    <div class="card kpi"><div class="k">Margin error</div><div class="v">${mae == null ? '–' : f1(mae)}</div><div class="s">avg points off</div></div>`;
+  if (!state.log.length) { $('logTable').innerHTML = '<div class="empty">No saved predictions yet.</div>'; return; }
+  const tag = v => v === 'W' ? '<span class="tag g">W</span>' : v === 'L' ? '<span class="tag r">L</span>' : v === 'P' ? '<span class="tag m">P</span>' : '<span class="muted">–</span>';
+  $('logTable').innerHTML = `<table><thead><tr><th>Saved</th><th>Matchup</th><th class="n">Projected</th><th>Spread pick</th><th>Total pick</th><th>Final score</th><th>SU</th><th>ATS</th><th>O/U</th><th></th></tr></thead><tbody>${
+    state.log.map(e => {
+      const r = settle(e);
+      const spTxt = e.spPick ? `${esc(e.spPick.side === 'A' ? e.a : e.b)} ${sgn(e.spPick.side === 'A' ? e.spreadA : -e.spreadA)}` : '–';
+      const tTxt = e.totPick ? `${e.totPick.side} ${f1(e.total)}` : '–';
+      return `<tr><td class="muted small">${new Date(e.ts).toLocaleDateString()}</td><td><b>${esc(e.a)}</b> ${e.venue === 'N' ? 'vs' : e.venue === 'A' ? 'vs' : '@'} <b>${esc(e.b)}</b>${e.venue === 'A' ? ' <span class="muted small">(A home)</span>' : ''}</td>
+        <td class="n">${Math.round(e.pa)}–${Math.round(e.pb)}</td><td>${spTxt}</td><td>${tTxt}</td>
+        <td class="log-score"><input type="number" data-id="${e.id}" data-f="fa" value="${e.fa ?? ''}" placeholder="A"> – <input type="number" data-id="${e.id}" data-f="fb" value="${e.fb ?? ''}" placeholder="B"></td>
+        <td>${r ? (r.su === 1 ? '<span class="tag g">✓</span>' : r.su === 0 ? '<span class="tag r">✗</span>' : '–') : '<span class="muted">–</span>'}</td><td>${r ? tag(r.ats) : tag()}</td><td>${r ? tag(r.ou) : tag()}</td>
+        <td><button class="btn ghost sm" data-ldel="${e.id}">✕</button></td></tr>`;
+    }).join('')}</tbody></table>`;
+  $('logTable').querySelectorAll('input[data-id]').forEach(inp => inp.onchange = () => {
+    const e = state.log.find(x => x.id === inp.dataset.id); const v = parseFloat(inp.value);
+    e[inp.dataset.f] = isFinite(v) ? v : null; save('log'); setTimeout(renderLog, 0);
+  });
+  $('logTable').querySelectorAll('[data-ldel]').forEach(b => b.onclick = () => { state.log = state.log.filter(x => x.id !== b.dataset.ldel); save('log'); renderLog(); });
+}
+
+function renderAll() { renderDatalist(); updateNoTeams(); renderSettings(); renderTeams(); fillFromLib('A'); fillFromLib('B'); renderResult(); route(); }
+renderAll();
+initStore();
+})();
+</script>
+</body>
+</html>
